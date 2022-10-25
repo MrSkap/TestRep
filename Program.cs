@@ -1,5 +1,3 @@
-
-
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
@@ -13,6 +11,9 @@ System.Console.WriteLine("Test message");
 System.Console.WriteLine("Test message");
 System.Console.WriteLine("Test message");
 System.Console.WriteLine("Test message");
-
+System.Console.WriteLine("Test message");
+System.Console.WriteLine("Test message");
+System.Console.WriteLine("Test message");
+System.Console.WriteLine("Test message");
 
 app.Run();
