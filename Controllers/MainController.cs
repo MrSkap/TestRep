@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Models;
 namespace Controllers;
 public class MainController: Controller
 {
