@@ -8,15 +8,5 @@ app.MapGet("/", () => "Hello World!");
 
 
 System.Console.WriteLine("Test message");
-System.Console.WriteLine("Test message");
-System.Console.WriteLine("Test message");
-System.Console.WriteLine("Test message");
-System.Console.WriteLine("Test message");
-System.Console.WriteLine("Test message");
-System.Console.WriteLine("Test message");
-System.Console.WriteLine("Test message");
-System.Console.WriteLine("Test message");
-System.Console.WriteLine("Test message");
-System.Console.WriteLine("Test message");
 
 app.Run();
