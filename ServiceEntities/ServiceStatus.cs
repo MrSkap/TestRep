@@ -2,9 +2,9 @@
 
 namespace ServiseEntities;
 
-public class ServiceStatus
+public record ServiceStatus
 {
-    public string Name { get; set; } = "name";
+    public string Name { get; init; } = "name";
     public Health Health { get; set; } = Health.Degraded;
 
     public ServiceStatus(string name, Health health)
