@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ServiceEntities;
 using Services;
+using ServiseEntities;
 
 namespace WebApplication.Controllers;
 [ApiController]
@@ -15,9 +15,9 @@ public class ServicesStatusController : ControllerBase
     public Health? GetServiceStatus(string service) => _collector.GetServiceStatus(service);
 
     [HttpPost]
-    public ActionResult CreateService(string service, Health health)
+    public ActionResult SetServiceStatus(string service, Health health)
     {
         _collector.ChangeServiceStatus(service, health);
-        return Ok();
+        return Ok(1);
     }
 }

@@ -1,7 +1,5 @@
-﻿using ServiceEntities;
-
-namespace ServiseEntities;
-
+﻿namespace ServiseEntities;
+[Serializable]
 public record ServiceStatus
 {
     public string Name { get; init; } = "name";

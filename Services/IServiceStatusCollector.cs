@@ -1,4 +1,4 @@
-﻿using ServiceEntities;
+﻿using ServiseEntities;
 
 namespace Services;
 
