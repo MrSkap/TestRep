@@ -2,7 +2,7 @@
 
 namespace Services;
 
-public class ServicesStatusCollector
+public class ServicesStatusCollector: IServiceStatusCollector
 {
     private readonly Dictionary<string, Health> _services = new();
 
