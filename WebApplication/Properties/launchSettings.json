@@ -12,7 +12,7 @@
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
-      "applicationUrl": "https://localhost:7218;http://localhost:5256",
+      "applicationUrl": "https://localhost:5001;http://localhost:5000",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
@@ -23,6 +23,19 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "launchBrowser": true,
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "DockerfileRunArguments": "-l mylabel=value",
+      "environmentVariables": {
+        "ASPNETCORE_URLS": "https://+:5001;http://+:5000",
+        "ASPNETCORE_HTTPS_PORT": "44360"
+      },
+      "httpPort": 5000,
+      "useSSL": true,
+      "sslPort": 44360
     }
   }
 }
