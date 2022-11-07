@@ -8,6 +8,6 @@ public interface IServiceStatusCollector
 
     public Health? GetServiceStatus(string serviceName);
 
-    public void SetServiceHistory(string serviceName, IEnumerable<ServiceStatus> history);
-    public IEnumerable<ServiceStatus>? GetServiceHistory(string serviceName);
+    public void AddServiceHistory(string serviceName, List<ServiceStatus> history);
+    public List<ServiceStatus> GetServiceHistory(string serviceName);
 }

@@ -5,7 +5,7 @@ namespace Services;
 public class ServicesStatusCollector : IServiceStatusCollector
 {
     private readonly Dictionary<string, Health> _services = new();
-    private readonly Dictionary<string, IEnumerable<ServiceStatus>> _servicesHistory = new();
+    private readonly Dictionary<string, List<ServiceStatus>> _servicesHistory = new();
 
     public void ChangeServiceStatus(string serviceName, Health status)
     {
@@ -29,17 +29,17 @@ public class ServicesStatusCollector : IServiceStatusCollector
         return null;
     }
 
-    public void SetServiceHistory(string serviceName, IEnumerable<ServiceStatus> history)
+    public void AddServiceHistory(string serviceName, List<ServiceStatus> history)
     {
         if (_servicesHistory.ContainsKey(serviceName))
         {
-            _servicesHistory[serviceName] = _servicesHistory[serviceName].Concat(history);
+            _servicesHistory[serviceName]?.AddRange(history);
         }
         else
         {
-            _servicesHistory.Add(serviceName, history);
+            _servicesHistory[serviceName] = history;
         }
     }
 
-    public IEnumerable<ServiceStatus>? GetServiceHistory(string serviceName) => _servicesHistory.ContainsKey(serviceName) ? _servicesHistory[serviceName] : null;
+    public List<ServiceStatus> GetServiceHistory(string serviceName) => _servicesHistory.GetValueOrDefault(serviceName, new List<ServiceStatus>());
 }
