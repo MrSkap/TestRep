@@ -1,29 +1,30 @@
-﻿using ServiseEntities;
+﻿using System.Collections.Concurrent;
+using ServiseEntities;
 
 namespace Services;
 
 public class ServicesStatusCollector : IServiceStatusCollector
 {
-    private readonly Dictionary<string, Health> _services = new();
-    private readonly Dictionary<string, List<ServiceStatus>> _servicesHistory = new();
+    private readonly ConcurrentDictionary<string, List<ServiceStatus>> _servicesHistory = new();
 
     public void ChangeServiceStatus(string serviceName, Health status)
     {
-        if (_services.ContainsKey(serviceName))
+        if (_servicesHistory.ContainsKey(serviceName))
         {
-            _services[serviceName] = status;
+            _servicesHistory[serviceName].Add(new ServiceStatus(serviceName, status));
         }
         else
         {
-            _services.Add(serviceName, status);
+            var list = new List<ServiceStatus> { new ServiceStatus(serviceName, status) };
+            _servicesHistory.TryAdd(serviceName, list);
         }
     }
 
     public Health? GetServiceStatus(string serviceName)
     {
-        if (_services.ContainsKey(serviceName))
+        if (_servicesHistory.ContainsKey(serviceName))
         {
-            return _services[serviceName];
+            return _servicesHistory[serviceName].Last().Health;
         }
 
         return null;
@@ -41,5 +42,6 @@ public class ServicesStatusCollector : IServiceStatusCollector
         }
     }
 
-    public List<ServiceStatus> GetServiceHistory(string serviceName) => _servicesHistory.GetValueOrDefault(serviceName, new List<ServiceStatus>());
+    public List<ServiceStatus> GetServiceHistory(string serviceName, ServiceStatusRequestParameters parameters)
+        => _servicesHistory.GetValueOrDefault(serviceName, new List<ServiceStatus>()).Skip(parameters.Offset).OrderByDescending(status => status.TimeOfStatusUpdate).Take(parameters.Take).ToList();
 }

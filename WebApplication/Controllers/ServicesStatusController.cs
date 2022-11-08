@@ -24,11 +24,12 @@ public class ServicesStatusController : ControllerBase
 
     [Route("/api/health/history/{service}")]
     [HttpGet]
-    public List<ServiceStatus> GetServiceStatusHistory(string service) => _collector.GetServiceHistory(service);
+    public List<ServiceStatus> GetServiceStatusHistory(string service, [FromQuery]ServiceStatusRequestParameters parameters)
+        => _collector.GetServiceHistory(service, parameters);
 
     [Route("/api/health/history/{service}")]
     [HttpPost]
-    public ActionResult SerServiceStatusHistory(string service, List<ServiceStatus> history)
+    public ActionResult SetServiceStatusHistory(string service, List<ServiceStatus> history)
     {
         _collector.AddServiceHistory(service, history);
         return Ok(history);
