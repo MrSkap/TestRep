@@ -15,7 +15,7 @@ public class ServicesStatusCollector : IServiceStatusCollector
         }
         else
         {
-            var list = new List<ServiceStatus> { new ServiceStatus(serviceName, status) };
+            var list = new List<ServiceStatus> { new(serviceName, status) };
             _servicesHistory.TryAdd(serviceName, list);
         }
     }
@@ -32,16 +32,13 @@ public class ServicesStatusCollector : IServiceStatusCollector
 
     public void AddServiceHistory(string serviceName, List<ServiceStatus> history)
     {
-        if (_servicesHistory.ContainsKey(serviceName))
+        if (!_servicesHistory.TryAdd(serviceName, history))
         {
             _servicesHistory[serviceName]?.AddRange(history);
-        }
-        else
-        {
-            _servicesHistory[serviceName] = history;
         }
     }
 
     public List<ServiceStatus> GetServiceHistory(string serviceName, ServiceStatusRequestParameters parameters)
-        => _servicesHistory.GetValueOrDefault(serviceName, new List<ServiceStatus>()).Skip(parameters.Offset).OrderByDescending(status => status.TimeOfStatusUpdate).Take(parameters.Take).ToList();
+        => _servicesHistory.GetValueOrDefault(serviceName, new List<ServiceStatus>())
+            .Skip(parameters.Offset).OrderByDescending(status => status.TimeOfStatusUpdate).Take(parameters.Take).ToList();
 }
