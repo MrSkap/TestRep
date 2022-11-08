@@ -8,17 +8,7 @@ public class ServicesStatusCollector : IServiceStatusCollector
     private readonly ConcurrentDictionary<string, List<ServiceStatus>> _servicesHistory = new();
 
     public void ChangeServiceStatus(string serviceName, Health status)
-    {
-        if (_servicesHistory.ContainsKey(serviceName))
-        {
-            _servicesHistory[serviceName].Add(new ServiceStatus(serviceName, status));
-        }
-        else
-        {
-            var list = new List<ServiceStatus> { new(serviceName, status) };
-            _servicesHistory.TryAdd(serviceName, list);
-        }
-    }
+        => _servicesHistory.GetOrAdd(serviceName, new List<ServiceStatus>()).Add(new ServiceStatus(serviceName, status));
 
     public Health? GetServiceStatus(string serviceName)
     {
@@ -31,14 +21,11 @@ public class ServicesStatusCollector : IServiceStatusCollector
     }
 
     public void AddServiceHistory(string serviceName, List<ServiceStatus> history)
-    {
-        if (!_servicesHistory.TryAdd(serviceName, history))
-        {
-            _servicesHistory[serviceName]?.AddRange(history);
-        }
-    }
+        => _servicesHistory.GetOrAdd(serviceName, new List<ServiceStatus>()).AddRange(history);
 
-    public List<ServiceStatus> GetServiceHistory(string serviceName, ServiceStatusRequestParameters parameters)
+    public List<ServiceStatus> GetServiceHistory(string serviceName, HistoryRequestParameters parameters)
         => _servicesHistory.GetValueOrDefault(serviceName, new List<ServiceStatus>())
-            .Skip(parameters.Offset).OrderByDescending(status => status.TimeOfStatusUpdate).Take(parameters.Take).ToList();
+            .OrderByDescending(status => status.TimeOfStatusUpdate)
+            .Skip(parameters.Offset)
+            .Take(parameters.Take).ToList();
 }

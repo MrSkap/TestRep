@@ -1,7 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
 namespace ServiseEntities;
-[Serializable]
 public record ServiceStatus
 {
     public string Name { get; init; } = "name";

@@ -16,22 +16,16 @@ public class ServicesStatusController : ControllerBase
     public Health? GetServiceStatus(string service) => _collector.GetServiceStatus(service);
 
     [HttpPost]
-    public ActionResult SetServiceStatus(string service, Health health)
-    {
-        _collector.ChangeServiceStatus(service, health);
-        return Ok(1);
-    }
+    public void SetServiceStatus(string service, Health health)
+        => _collector.ChangeServiceStatus(service, health);
 
     [Route("/api/health/history/{service}")]
     [HttpGet]
-    public List<ServiceStatus> GetServiceStatusHistory(string service, [FromQuery]ServiceStatusRequestParameters parameters)
+    public List<ServiceStatus> GetServiceStatusHistory(string service, [FromQuery]HistoryRequestParameters parameters)
         => _collector.GetServiceHistory(service, parameters);
 
     [Route("/api/health/history/{service}")]
     [HttpPost]
-    public ActionResult SetServiceStatusHistory(string service, List<ServiceStatus> history)
-    {
-        _collector.AddServiceHistory(service, history);
-        return Ok(history);
-    }
+    public void SetServiceStatusHistory(string service, List<ServiceStatus> history)
+        => _collector.AddServiceHistory(service, history);
 }
