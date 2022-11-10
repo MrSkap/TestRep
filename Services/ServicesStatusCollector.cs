@@ -28,4 +28,9 @@ public class ServicesStatusCollector : IServiceStatusCollector
             .OrderByDescending(status => status.TimeOfStatusUpdate)
             .Skip(parameters.Offset)
             .Take(parameters.Take).ToList();
+
+    public List<ServiceStatus> GetServicesStatus() =>
+        _servicesHistory.Select(
+            history => history.Value.OrderByDescending(
+                status => status.TimeOfStatusUpdate).First()).ToList();
 }

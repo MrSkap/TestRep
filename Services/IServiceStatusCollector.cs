@@ -10,4 +10,5 @@ public interface IServiceStatusCollector
 
     public void AddServiceHistory(string serviceName, List<ServiceStatus> history);
     public List<ServiceStatus> GetServiceHistory(string serviceName, HistoryRequestParameters parameters);
+    public List<ServiceStatus> GetServicesStatus();
 }
