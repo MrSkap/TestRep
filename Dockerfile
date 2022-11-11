@@ -4,6 +4,7 @@ COPY WebApplication/WebApplication.csproj /project/WebApplication/WebApplication
 WORKDIR project
 COPY Services/Services.csproj Services/Services.csproj
 COPY ServiceEntities/ServiceEntities.csproj ServiceEntities/ServiceEntities.csproj
+
 RUN dotnet restore WebApplication/WebApplication.csproj
 RUN dotnet restore ServiceEntities/ServiceEntities.csproj
 RUN dotnet restore Services/Services.csproj
@@ -17,3 +18,15 @@ COPY --from=build /app ./
 
 EXPOSE 5000
 ENTRYPOINT ["dotnet", "WebApplication.dll"]
+
+
+FROM node:latest AS build
+WORKDIR /usr/src/app
+COPY ./ClientApp/client-app/package.json ./ClientApp/client-app/package-lock.json ./
+RUN npm install
+COPY ./ClientApp/client-app .
+RUN npm run build
+
+FROM nginx:alpine
+COPY ./ClientApp/client-app/nginx.conf /etc/nginx/nginx.conf
+COPY --from=build /usr/src/app/dist/client-app /usr/share/nginx/html

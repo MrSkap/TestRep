@@ -3,6 +3,7 @@
     build: ./
     ports:
       - 5000:5000
+      - 4200:4200
     environment:
       - ASPNETCORE_URLS=http://localhost
       - ASPNETCORE_HTTP_PORT=5000

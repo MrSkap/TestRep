@@ -7,7 +7,7 @@ builder.Services.AddSingleton<IServiceStatusCollector, ServicesStatusCollector>(
 builder.Services.AddControllers();
 builder.WebHost.ConfigureKestrel(options =>
 {
-    //options.ListenAnyIP(5000);
+    options.ListenAnyIP(5000);
 });
 builder.Services.AddCors(options => {
     options.AddPolicy(name: "MyPolicy",
@@ -21,7 +21,6 @@ builder.Services.AddCors(options => {
 });
 var app = builder.Build();
 
-//app.UseHttpsRedirection();
 app.MapControllers();
 app.UseCors("MyPolicy");
 app.Run();
