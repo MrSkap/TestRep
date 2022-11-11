@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Mvc;
 using Services;
 using ServiseEntities;
 
@@ -29,6 +30,7 @@ public class ServicesStatusController : ControllerBase
     public void SetServiceStatusHistory(string service, List<ServiceStatus> history)
         => _collector.AddServiceHistory(service, history);
 
+    [EnableCors]
     [Route("/api/health")]
     [HttpGet]
     public List<ServiceStatus> GetAllServices()

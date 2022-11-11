@@ -1,0 +1,16 @@
+<table>
+  <thead>
+    <tr>
+      <th>Имя сервиса</th>
+      <th>Состояние здоровья</th>
+      <th>Метка времени</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let dataItem of ServicesList">
+      <td>{{dataItem.name}}</td>
+      <td>{{dataItem.health}}</td>
+      <td>{{dataItem.timeOfStatusUpdate}}</td>
+    </tr>
+  </tbody>
+</table>
