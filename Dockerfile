@@ -22,11 +22,9 @@ ENTRYPOINT ["dotnet", "WebApplication.dll"]
 
 FROM node:latest AS build
 WORKDIR /usr/src/app
-COPY ./ClientApp/client-app/package.json ./ClientApp/client-app/package-lock.json ./
-RUN npm install
 COPY ./ClientApp/client-app .
-RUN npm run build
+RUN npm install
+RUN npm run build --prod
 
-FROM nginx:alpine
-COPY ./ClientApp/client-app/nginx.conf /etc/nginx/nginx.conf
+FROM nginx:latest
 COPY --from=build /usr/src/app/dist/client-app /usr/share/nginx/html
