@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore;
+using Microsoft.Extensions.Options;
 using Services;
 using ServiseEntities;
 
@@ -25,5 +26,4 @@ var app = builder.Build();
 app.MapControllers();
 app.UseCors("MyPolicy");
 app.Run();
-
 
