@@ -2,8 +2,11 @@ FROM node:latest AS build
 WORKDIR /usr/src/app
 COPY ./ .
 RUN npm install
-RUN npm run build --prod
+RUN npm run build
 
-FROM nginx:latest
-COPY --from=build /usr/src/app/dist/client-app /usr/share/nginx/html
-EXPOSE 4200
+
+FROM nginx
+RUN rm /etc/nginx/conf.d/default.conf
+COPY --from=build /usr/src/app/dist/client-app /var/www/html
+COPY nginx.conf  /etc/nginx
+EXPOSE 80

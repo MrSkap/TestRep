@@ -13,11 +13,11 @@ export class ServiceTableComponent implements OnInit {
   ngOnInit(): void {
     this.refreshServicesList();
   }
-  ServicesList:ServiceHealth[]=[];
+  servicesList:ServiceHealth[]=[];
 
   refreshServicesList(){
     this.service.getServiceHealth().subscribe(data =>{
-      this.ServicesList = data;
+      this.servicesList = data;
     });
   }
 }

@@ -18,13 +18,3 @@ COPY --from=build /app ./
 
 EXPOSE 5000
 ENTRYPOINT ["dotnet", "WebApplication.dll"]
-
-
-FROM node:latest AS build
-WORKDIR /usr/src/app
-COPY ./ClientApp/client-app .
-RUN npm install
-RUN npm run build --prod
-
-FROM nginx:latest
-COPY --from=build /usr/src/app/dist/client-app /usr/share/nginx/html
