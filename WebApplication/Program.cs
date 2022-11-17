@@ -5,6 +5,8 @@ using ServiseEntities;
 
 var builder = Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<IServiceStatusCollector, ServicesStatusCollector>();
+builder.Services.Configure<ServiceHistoryDatabaseOptions>(
+    builder.Configuration.GetSection("ServiceHistoryDatabase"));
 builder.Services.AddControllers();
 builder.WebHost.ConfigureKestrel(options =>
 {
