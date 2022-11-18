@@ -4,6 +4,9 @@ namespace HistoryRepositoryDB;
 
 public interface IHistoryRepositoryDB
 {
-    public List<ServiceStatus> GetHistory();
-    public void SetHistory();
+    public Task SetStatus(ServiceStatus service);
+    public Task<ServiceStatus> GetServiceStatus(string serviceName);
+    public Task SetOrAddServiceStatuses(List<ServiceStatus> serviceHistory);
+    public Task<List<ServiceStatus>> GetServiceStatuses(string serviceName, int offset, int take);
+
 }

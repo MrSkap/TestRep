@@ -9,32 +9,30 @@ namespace WebApplication.Controllers;
 [Route("api/health/{service}")]
 public class ServicesStatusController : ControllerBase
 {
-    private readonly IServiceStatusCollector _collector;
+    private readonly IServiceHistoryCollector _collector;
 
-    public ServicesStatusController(IServiceStatusCollector collector) => _collector = collector;
+    public ServicesStatusController(IServiceHistoryCollector collector) => _collector = collector;
 
     [HttpGet]
-    public Health? GetServiceStatus(string service) => _collector.GetServiceStatus(service);
+    public async Task<Health> GetServiceStatus(string service) => (await _collector.GetServiceStatus(service)).Health;
 
     [HttpPost]
-    public void SetServiceStatus(string service, Health health)
-        => _collector.ChangeServiceStatus(service, health);
+    public async Task SetServiceStatus(string service, Health health, DateTimeOffset time)
+        => await _collector.SetOrAddServiceStatus(new ServiceStatus(service, health, time));
 
     [Route("/api/health/history/{service}")]
     [HttpGet]
-    public List<ServiceStatus> GetServiceStatusHistory(string service, [FromQuery]HistoryRequestParameters parameters)
-        => _collector.GetServiceHistory(service, parameters);
+    public async Task<List<ServiceStatus>> GetServiceStatusHistory(string service, [FromQuery] HistoryRequestParameters parameters)
+        => await _collector.GetServiceHistory(service, parameters);
 
     [Route("/api/health/history/{service}")]
     [HttpPost]
-    public void SetServiceStatusHistory(string service, List<ServiceStatus> history)
-        => _collector.AddServiceHistory(service, history);
+    public async Task SetServiceStatusHistory(string service, List<ServiceStatus> history)
+        => await _collector.SetOrAddServiceHistory(history);
 
     [EnableCors]
     [Route("/api/health")]
     [HttpGet]
-    public List<ServiceStatus> GetAllServices()
-    {
-        return _collector.GetServicesStatus();
-    }
+    public async Task<List<ServiceStatus>> GetAllServices()
+        => await _collector.GetLastServicesStatus();
 }

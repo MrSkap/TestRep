@@ -6,51 +6,39 @@ using Services;
 
 namespace HistoryRepositoryDB;
 
-public class HistoryRepository//:IServiceStatusCollector
+public class HistoryRepository : IHistoryRepositoryDB
 {
-    private readonly MongoClient _client;
-    private readonly IOptions<ServiceHistoryDatabaseOptions> _config;
-    private IMongoCollection<ServiceHistroy> _allServicesHistory;
-    private IMongoCollection<ServiceStatus> _lastServicesStatus;
-    public HistoryRepository(IOptions<ServiceHistoryDatabaseOptions> config)
-    {
-        _config = config;
-        _client = new MongoClient(_config.Value.ConnctionString);
-        _allServicesHistory = _client.GetDatabase(_config.Value.DatabaseName).GetCollection<ServiceHistroy>(_config.Value.AllServicesHistoryCollectionName);
-        _lastServicesStatus = _client.GetDatabase(_config.Value.DatabaseName).GetCollection<ServiceStatus>(_config.Value.LastServicesStatusCollectionName);
-    }
-    public List<ServiceStatus> GetHistory() => throw new NotImplementedException();
+    private readonly IMongoDatabase _database;
 
-    public void SetHistory() => throw new NotImplementedException();
-    public void ChangeServiceStatus(string serviceName, Health status, DateTimeOffset time)
-    {
-        _allServicesHistory.FindOneAndUpdate(element => element.Name == serviceName,
-            Builders<ServiceHistroy>.Update.AddToSet("History", new ServiceStatus(serviceName, status, time)));
-        _lastServicesStatus.FindOneAndReplace(el => el.Name == serviceName, new ServiceStatus(serviceName, status, time));
-    }
+    public HistoryRepository(IMongoDatabase database) => _database = database;
+
+    public async Task SetStatus(ServiceStatus service) =>
+        await Task.Run(() =>
+        {
+            IMongoCollection<ServiceStatus>? collection = _database.GetCollection<ServiceStatus>(service.Name);
+            collection?.InsertOne(service);
+        });
 
     public async Task<ServiceStatus> GetServiceStatus(string serviceName)
     {
-        return _lastServicesStatus.FindAsync(el => el.Name == serviceName).Result.Current.First();
+        IMongoCollection<ServiceStatus>? collection = _database.GetCollection<ServiceStatus>(serviceName);
+        return (await collection.FindAsync(el => el.Name == serviceName)).First();
     }
 
-    public async void AddServiceHistory(string serviceName, List<ServiceStatus> history)
+    public async Task SetOrAddServiceStatuses(List<ServiceStatus> serviceHistory)
     {
-        _allServicesHistory.FindOneAndUpdate(element => element.Name == serviceName,
-            Builders<ServiceHistroy>.Update.Push("History", history));
-        _lastServicesStatus.FindOneAndReplace(el => el.Name == serviceName,
-                (await _allServicesHistory.FindAsync(element => element.Name == serviceName))
-                                .ToList()[0].History.OrderByDescending(el => el.TimeOfStatusUpdate).First());
+        IMongoCollection<ServiceStatus>? collection = _database.GetCollection<ServiceStatus>(serviceHistory.First().Name);
+        await collection.InsertManyAsync(serviceHistory);
     }
 
-    public async Task<List<ServiceStatus>> GetServiceHistory(string serviceName, HistoryRequestParameters parameters)
+    public async Task<List<ServiceStatus>> GetServiceStatuses(string serviceName, int offset, int take)
     {
-        return (await _allServicesHistory.FindAsync(element => element.Name == serviceName))
-            .ToList()[0].History;
-    }
-
-    public async Task<List<ServiceStatus>> GetServicesStatus()
-    {
-        return await _lastServicesStatus.Find(x => true).ToListAsync();
+        IMongoCollection<ServiceStatus>? collection = _database.GetCollection<ServiceStatus>(serviceName);
+        return (await collection.FindAsync(el => true))
+            .ToList()
+            .OrderByDescending(el => el.TimeOfStatusUpdate)
+            .Skip(offset)
+            .Take(take)
+            .ToList();
     }
 }

@@ -3,7 +3,7 @@ using MongoDB.Driver;
 using MongoDB.Bson.Serialization.Attributes;
 namespace ServiseEntities;
 
-public class ServiceHistroy
+public class ServiceHistory
 {
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]

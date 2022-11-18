@@ -1,12 +1,25 @@
+using HistoryRepositoryDB;
 using Microsoft.AspNetCore;
 using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 using Services;
 using ServiseEntities;
 
 var builder = Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(args);
-builder.Services.AddSingleton<IServiceStatusCollector, ServicesStatusCollector>();
-builder.Services.Configure<ServiceHistoryDatabaseOptions>(
-    builder.Configuration.GetSection("ServiceHistoryDatabase"));
+//builder.Services.AddSingleton<IServiceStatusCollector, ServicesStatusCollector>();
+
+var client = new MongoClient(builder.Configuration.GetSection(ServiceHistoryDatabaseOptions.ConfigurationKey)
+    .GetSection("ConnectionString").Value);
+
+builder.Services.AddTransient<IServiceHistoryCollector, ServiceHistoryCollector>();
+builder.Services.AddSingleton<IHistoryRepositoryDB, HistoryRepository>(options =>
+    new HistoryRepository(client.GetDatabase(
+        builder.Configuration.GetSection(ServiceHistoryDatabaseOptions.ConfigurationKey)
+            .GetSection("DatabaseName").Value)));
+builder.Services.AddSingleton<ILastServiceStatusRepository, LastServiceStatusRepository>(options =>
+    new LastServiceStatusRepository(client.GetDatabase(
+        builder.Configuration.GetSection(ServiceHistoryDatabaseOptions.ConfigurationKey)
+            .GetSection("DatabaseName").Value)));
 builder.Services.AddControllers();
 builder.WebHost.ConfigureKestrel(options =>
 {
