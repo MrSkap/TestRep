@@ -12,7 +12,7 @@ var client = new MongoClient(builder.Configuration.GetSection(ServiceHistoryData
     .GetSection("ConnectionString").Value);
 
 builder.Services.AddTransient<IServiceHistoryCollector, ServiceHistoryCollector>();
-builder.Services.AddSingleton<IHistoryRepositoryDB, HistoryRepository>(options =>
+builder.Services.AddSingleton<IHistoryRepository, HistoryRepository>(options =>
     new HistoryRepository(client.GetDatabase(
         builder.Configuration.GetSection(ServiceHistoryDatabaseOptions.ConfigurationKey)
             .GetSection("DatabaseName").Value)));

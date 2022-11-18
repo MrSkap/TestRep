@@ -10,7 +10,7 @@ RUN dotnet restore ServiceEntities/ServiceEntities.csproj
 RUN dotnet restore Services/Services.csproj
 COPY . .
 
-RUN dotnet publish WebApplication/WebApplication.csproj -o /app --no-restore
+RUN dotnet publish WebApplication/WebApplication.csproj -o /app --no-restore --no-cache /restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:6.0
 WORKDIR /app
