@@ -13,7 +13,7 @@ public class LastServiceStatusRepository: ILastServiceStatusRepository
         _database = database;
         _collection = _database.GetCollection<ServiceStatus>(_collectionName);
     }
-    public async Task<ServiceStatus> GetServiceStatus(string serviceName)
+    public async Task<ServiceStatus?> GetServiceStatus(string serviceName)
     {
         return (await _collection.FindAsync(el => el.Name == serviceName)).First();
     }
@@ -21,11 +21,12 @@ public class LastServiceStatusRepository: ILastServiceStatusRepository
     public async Task SetServiceStatus(ServiceStatus serviceStatus) =>
         await Task.Run(() =>
         {
-            _collection.FindOneAndUpdate(el => el.Name == serviceStatus.Name,
-                Builders<ServiceStatus>.Update.Set(service => service.Health, serviceStatus.Health));
-            _collection.FindOneAndUpdate(el => el.Name == serviceStatus.Name,
-                Builders<ServiceStatus>.Update.Set(service => service.TimeOfStatusUpdate, serviceStatus.TimeOfStatusUpdate));
+            _collection.ReplaceOne(el => el.Name == serviceStatus.Name, serviceStatus);
+            // _collection.FindOneAndUpdate(el => el.Name == serviceStatus.Name,
+            //     Builders<ServiceStatus>.Update.Set(service => service.Health, serviceStatus.Health));
+            // _collection.FindOneAndUpdate(el => el.Name == serviceStatus.Name,
+            //     Builders<ServiceStatus>.Update.Set(service => service.TimeOfStatusUpdate, serviceStatus.TimeOfStatusUpdate));
         });
 
-    public async Task<List<ServiceStatus>> GetAllServicesStatus() => await _collection.Find(service => true).ToListAsync();
+    public async Task<List<ServiceStatus>?> GetAllServicesStatus() => await _collection.Find(service => true).ToListAsync();
 }

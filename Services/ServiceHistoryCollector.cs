@@ -14,7 +14,7 @@ public class ServiceHistoryCollector : IServiceHistoryCollector
         _historyRepositoryDb = historyRepositoryDB;
     }
 
-    public async Task<List<ServiceStatus>> GetServiceHistory(string serviceName, HistoryRequestParameters parameters)
+    public async Task<List<ServiceStatus>?> GetServiceHistory(string serviceName, HistoryRequestParameters parameters)
         => await _historyRepositoryDb.GetServiceStatuses(serviceName, parameters.Offset, parameters.Take);
 
     public async Task SetOrAddServiceHistory(List<ServiceStatus> history)
@@ -28,7 +28,7 @@ public class ServiceHistoryCollector : IServiceHistoryCollector
         await Task.WhenAll(tasks);
     }
 
-    public async Task<ServiceStatus> GetServiceStatus(string serviceName)
+    public async Task<ServiceStatus?> GetServiceStatus(string serviceName)
         => await _lastServiceStatusRepository.GetServiceStatus(serviceName);
 
     public async Task SetOrAddServiceStatus(ServiceStatus serviceStatus)
@@ -41,6 +41,6 @@ public class ServiceHistoryCollector : IServiceHistoryCollector
         await Task.WhenAll(tasks);
     }
 
-    public async Task<List<ServiceStatus>> GetLastServicesStatus()
+    public async Task<List<ServiceStatus>?> GetLastServicesStatus()
         => await _lastServiceStatusRepository.GetAllServicesStatus();
 }

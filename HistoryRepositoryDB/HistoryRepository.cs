@@ -2,7 +2,6 @@
 using MongoDB.Bson;
 using ServiseEntities;
 using MongoDB.Driver;
-using Services;
 
 namespace HistoryRepositoryDB;
 
@@ -19,7 +18,7 @@ public class HistoryRepository : IHistoryRepositoryDB
             collection?.InsertOne(service);
         });
 
-    public async Task<ServiceStatus> GetServiceStatus(string serviceName)
+    public async Task<ServiceStatus?> GetServiceStatus(string serviceName)
     {
         IMongoCollection<ServiceStatus>? collection = _database.GetCollection<ServiceStatus>(serviceName);
         return (await collection.FindAsync(el => el.Name == serviceName)).First();
@@ -31,7 +30,7 @@ public class HistoryRepository : IHistoryRepositoryDB
         await collection.InsertManyAsync(serviceHistory);
     }
 
-    public async Task<List<ServiceStatus>> GetServiceStatuses(string serviceName, int offset, int take)
+    public async Task<List<ServiceStatus>?> GetServiceStatuses(string serviceName, int offset, int take)
     {
         IMongoCollection<ServiceStatus>? collection = _database.GetCollection<ServiceStatus>(serviceName);
         return (await collection.FindAsync(el => true))

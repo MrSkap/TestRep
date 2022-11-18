@@ -22,7 +22,7 @@ public class ServicesStatusController : ControllerBase
 
     [Route("/api/health/history/{service}")]
     [HttpGet]
-    public async Task<List<ServiceStatus>> GetServiceStatusHistory(string service, [FromQuery] HistoryRequestParameters parameters)
+    public async Task<List<ServiceStatus>?> GetServiceStatusHistory(string service, [FromQuery] HistoryRequestParameters parameters)
         => await _collector.GetServiceHistory(service, parameters);
 
     [Route("/api/health/history/{service}")]
@@ -33,6 +33,6 @@ public class ServicesStatusController : ControllerBase
     [EnableCors]
     [Route("/api/health")]
     [HttpGet]
-    public async Task<List<ServiceStatus>> GetAllServices()
+    public async Task<List<ServiceStatus>?> GetAllServices()
         => await _collector.GetLastServicesStatus();
 }
