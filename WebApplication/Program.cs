@@ -19,6 +19,10 @@ builder.Services.AddSingleton<ILastServiceStatusRepository, LastServiceStatusRep
     new LastServiceStatusRepository(client.GetDatabase(
         builder.Configuration.GetSection(ServiceHistoryDatabaseOptions.ConfigurationKey)
             .GetSection("DatabaseName").Value)));
+builder.Services.AddSingleton<IRepositoriesWorker, RepositoriesWorker>(provider =>
+    new RepositoriesWorker(provider.GetRequiredService<ILastServiceStatusRepository>(),
+        provider.GetRequiredService<IHistoryRepository>(),
+        client));
 builder.Services.AddControllers();
 builder.WebHost.ConfigureKestrel(options =>
 {

@@ -1,49 +1,22 @@
 ﻿using ServiseEntities;
-using HistoryRepositoryDB;
 
 namespace Services;
 
 public class ServiceHistoryCollector : IServiceHistoryCollector
 {
-    private readonly ILastServiceStatusRepository _lastServiceStatusRepository;
-    private readonly IHistoryRepository _historyRepository;
-
-    public ServiceHistoryCollector(ILastServiceStatusRepository lastServiceStatusRepository, IHistoryRepository historyRepository)
-    {
-        _lastServiceStatusRepository = lastServiceStatusRepository;
-        _historyRepository = historyRepository;
-    }
+    private readonly IRepositoriesWorker _repositoriesWorker;
+    public ServiceHistoryCollector(IRepositoriesWorker repositoriesWorker) => _repositoriesWorker = repositoriesWorker;
 
     public async Task<List<ServiceStatus>?> GetServiceHistory(string serviceName, HistoryRequestParameters parameters)
-        => await _historyRepository.GetServiceStatuses(serviceName, parameters.Offset, parameters.Take);
+        => await _repositoriesWorker.GetHistory(serviceName, parameters.Offset, parameters.Take);
 
-    public async Task SetOrAddServiceHistory(List<ServiceStatus> history)
-    {
-        if (history.Count > 0)
-        {
-            Task[] tasks =
-            {
-                _historyRepository.SetOrAddServiceStatuses(history),
-                _lastServiceStatusRepository.SetServiceStatus(
-                    history.OrderByDescending(el => el.TimeOfStatusUpdate).First()),
-            };
-            await Task.WhenAll(tasks);
-        }
-    }
+    public async Task SetOrAddServiceHistory(List<ServiceStatus> history) => await _repositoriesWorker.AddHistory(history);
 
     public async Task<ServiceStatus?> GetServiceStatus(string serviceName)
-        => await _lastServiceStatusRepository.GetServiceStatus(serviceName);
+        => await _repositoriesWorker.GetServiceStatus(serviceName);
 
-    public async Task SetOrAddServiceStatus(ServiceStatus serviceStatus)
-    {
-        Task[] tasks =
-        {
-            _historyRepository.SetStatus(serviceStatus),
-            _lastServiceStatusRepository.SetServiceStatus(serviceStatus),
-        };
-        await Task.WhenAll(tasks);
-    }
+    public async Task SetOrAddServiceStatus(ServiceStatus serviceStatus) => await _repositoriesWorker.AddServiceStatus(serviceStatus);
 
     public async Task<List<ServiceStatus>?> GetLastServicesStatus()
-        => await _lastServiceStatusRepository.GetAllServicesStatus();
+        => await _repositoriesWorker.GetLastServicesStatus();
 }
