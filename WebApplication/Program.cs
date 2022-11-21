@@ -6,7 +6,6 @@ using Services;
 using ServiseEntities;
 
 var builder = Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(args);
-//builder.Services.AddSingleton<IServiceStatusCollector, ServicesStatusCollector>();
 
 var client = new MongoClient(builder.Configuration.GetSection(ServiceHistoryDatabaseOptions.ConfigurationKey)
     .GetSection("ConnectionString").Value);

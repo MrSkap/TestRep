@@ -30,7 +30,6 @@ public class ServicesStatusController : ControllerBase
     public async Task SetServiceStatusHistory(string service, List<ServiceStatus> history)
         => await _collector.SetOrAddServiceHistory(history);
 
-    [EnableCors]
     [Route("/api/health")]
     [HttpGet]
     public async Task<List<ServiceStatus>?> GetAllServices()

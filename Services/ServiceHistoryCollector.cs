@@ -19,13 +19,16 @@ public class ServiceHistoryCollector : IServiceHistoryCollector
 
     public async Task SetOrAddServiceHistory(List<ServiceStatus> history)
     {
-        Task[] tasks =
+        if (history.Count > 0)
         {
-            _historyRepository.SetOrAddServiceStatuses(history),
-            _lastServiceStatusRepository.SetServiceStatus(
-                history.OrderByDescending(el => el.TimeOfStatusUpdate).First()),
-        };
-        await Task.WhenAll(tasks);
+            Task[] tasks =
+            {
+                _historyRepository.SetOrAddServiceStatuses(history),
+                _lastServiceStatusRepository.SetServiceStatus(
+                    history.OrderByDescending(el => el.TimeOfStatusUpdate).First()),
+            };
+            await Task.WhenAll(tasks);
+        }
     }
 
     public async Task<ServiceStatus?> GetServiceStatus(string serviceName)
