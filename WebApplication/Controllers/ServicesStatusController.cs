@@ -14,7 +14,7 @@ public class ServicesStatusController : ControllerBase
     public ServicesStatusController(IServiceHistoryCollector collector) => _collector = collector;
 
     [HttpGet]
-    public async Task<Health> GetServiceStatus(string service) => (await _collector.GetServiceStatus(service)).Health;
+    public async Task<Health?> GetServiceStatus(string service) => (await _collector.GetServiceStatus(service))?.Health;
 
     [HttpPost]
     public async Task SetServiceStatus(string service, Health health, DateTimeOffset time)

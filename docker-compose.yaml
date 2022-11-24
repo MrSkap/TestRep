@@ -1,16 +1,31 @@
 ﻿services:
   mongodb:
-    image: mongo
-    ports:
-      - 27017:27017
     container_name: mongodb
+    image: mongo:5.0.4
+    hostname: mongo-test
+    ports:
+      - 27018:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+      MONGO_INITDB_DATABASE: test
+    entrypoint:
+      - bash
+      - -c
+      - |
+        echo testtoken > /data/replica.key
+        chmod 400 /data/replica.key
+        chown 999:999 /data/replica.key
+        exec docker-entrypoint.sh $$@
+    command: "mongod --bind_ip_all --replSet nvs-rs --keyFile /data/replica.key"
+
   web-application:
     build: ./
     ports:
       - 5000:5000
     environment:
       - ASPNETCORE_URLS=http://localhost
-      - ASPNETCORE_HTTP_PORT=5000
+      - ASPNETCORE_HTTP_PORT=5000z
     container_name: web-app-back
   front:
     build: ./ClientApp/client-app/
