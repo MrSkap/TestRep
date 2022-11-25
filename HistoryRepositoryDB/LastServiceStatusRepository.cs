@@ -1,52 +1,47 @@
-﻿using MongoDB.Bson;
-using MongoDB.Driver;
+﻿using MongoDB.Driver;
 using ServiseEntities;
 
 namespace HistoryRepositoryDB;
 
 public class LastServiceStatusRepository : ILastServiceStatusRepository
 {
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IClientSessionHandle _session;
+    private const string DatabaseName = "admin";
     private const string CollectionName = "LastServicesStatus";
     private readonly IMongoCollection<ServiceStatus> _collection;
 
-
-    public LastServiceStatusRepository(IMongoDatabase database, IUnitOfWork unitOfWork)
+    public LastServiceStatusRepository(IClientSessionHandle session)
     {
-        _unitOfWork = unitOfWork;
-        _collection = database.GetCollection<ServiceStatus>(CollectionName);
+        _session = session;
+        _collection = session.Client.GetDatabase(DatabaseName).GetCollection<ServiceStatus>(CollectionName);
     }
 
     public async Task<ServiceStatus?> GetServiceStatus(string serviceName)
     {
-        IAsyncCursor<ServiceStatus>? result = await _collection.FindAsync(el => el.Name == serviceName);
-        return (await result.ToListAsync()).Count > 0 ? (await _collection.FindAsync(el => el.Name == serviceName)).First() : null;
+        IAsyncCursor<ServiceStatus>? result = await _collection.FindAsync(_session, el => el.Name == serviceName);
+        return (await result.ToListAsync()).Count > 0 ? result.First() : null;
     }
 
     public async Task SetServiceStatus(ServiceStatus serviceStatus)
     {
         if ((await (await _collection.FindAsync(el => el.Id == serviceStatus.Id || el.Name == serviceStatus.Name)).ToListAsync()).Count == 0)
         {
-            async void Operation() => await _collection.InsertOneAsync(serviceStatus);
-            _unitOfWork.AddOperation(new Task(Operation));
+            await _collection.InsertOneAsync(_session, serviceStatus);
         }
         else
         {
-            UpdateDefinition<ServiceStatus>? updateHealth = Builders<ServiceStatus>.Update.Set(s => s.Health, serviceStatus.Health);
-            UpdateDefinition<ServiceStatus>? updateTime = Builders<ServiceStatus>.Update.Set(s => s.TimeOfStatusUpdate, serviceStatus.TimeOfStatusUpdate);
-
-            async void Operation()
-            {
-                await _collection.UpdateOneAsync
-                    (el => el.Name == serviceStatus.Name, updateHealth);
-                await _collection.UpdateOneAsync
-                    (el => el.Name == serviceStatus.Name, updateTime);
-            }
-
-            _unitOfWork.AddOperation(new Task(Operation));
+            await _collection.UpdateOneAsync
+            (_session, el => el.Name == serviceStatus.Name,
+                Builders<ServiceStatus>.Update.Set(s => s.Health, serviceStatus.Health));
+            await _collection.UpdateOneAsync
+            (_session, el => el.Name == serviceStatus.Name,
+                Builders<ServiceStatus>.Update.Set(s => s.TimeOfStatusUpdate, serviceStatus.TimeOfStatusUpdate));
+            await _collection.UpdateOneAsync
+            (_session, el => el.Id == serviceStatus.Id,
+                Builders<ServiceStatus>.Update.Set(s => s.Name, serviceStatus.Name));
         }
     }
 
     public async Task<List<ServiceStatus>> GetAllServicesStatus()
-        => await _collection.Find(service => true).ToListAsync();
+        => await _collection.Find(_session, service => true).ToListAsync();
 }

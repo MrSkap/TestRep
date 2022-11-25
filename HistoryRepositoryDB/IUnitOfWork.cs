@@ -1,9 +1,11 @@
-﻿namespace HistoryRepositoryDB;
+﻿using MongoDB.Driver;
+
+namespace HistoryRepositoryDB;
 
 public interface IUnitOfWork
 {
-    IDisposable Session { get; }
-    void AddOperation(Task operation);
-    void CleanOperations();
+    public IClientSessionHandle Session { get; }
+    IHistoryRepository GetHistoryRepository();
+    ILastServiceStatusRepository GetLastServiceStatusRepository();
     Task SaveChanges();
 }

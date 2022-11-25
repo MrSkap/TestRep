@@ -1,41 +1,43 @@
 using HistoryRepositoryDB;
 using MongoDB.Driver;
+using Serilog;
+using Serilog.Core;
 using Services;
 using ServiseEntities;
-using Serilog;
+using ILogger = Serilog.ILogger;
 
-var builder = Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(args);
-Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
-MongoClientSettings settings = MongoClientSettings.FromUrl(new MongoUrl(
-    builder.Configuration.GetSection(ServiceHistoryDatabaseOptions.ConfigurationKey).GetSection("ConnectionString").Value));
-settings.DirectConnection = true;
-var client = new MongoClient(settings);
+WebApplicationBuilder builder = Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(args);
 
-Log.Logger.Information(client.Settings.ToString());
+builder.Services.AddTransient<IUnitOfWork, UnitOfWork>(provider => new UnitOfWork(
+    provider.GetRequiredService<ServiceHistoryDatabaseOptions>(),
+    provider.GetRequiredService<ILogger>(),
+    provider.GetRequiredService<IHistoryRepository>(),
+    provider.GetRequiredService<ILastServiceStatusRepository>()));
+builder.Services.AddTransient<ServiceHistoryDatabaseOptions>(_ => new ServiceHistoryDatabaseOptions(){ ConnectionString = builder.Configuration.GetSection("ServiceHistoryDatabase").Value});
+builder.Services.AddTransient<IMongoDbInitializer, MongoDbInitializer>(provider => new MongoDbInitializer(
+    provider.GetRequiredService<ServiceHistoryDatabaseOptions>(),
+    provider.GetRequiredService<ILogger>()));
 
-var initializer = new MongoDbInitializer(client, Log.Logger);
-await initializer.Initialize();
-Log.Logger.Information("Initialization is completed!");
-builder.Services.AddSingleton<IUnitOfWork, UnitOfWork>(_ => new UnitOfWork(client, Log.Logger));
-builder.Services.AddSingleton<IHistoryRepository, HistoryRepository>(provider =>
-    new HistoryRepository(
-        client.GetDatabase(builder.Configuration.GetSection(ServiceHistoryDatabaseOptions.ConfigurationKey).GetSection("DatabaseName").Value),
-        provider.GetRequiredService<IUnitOfWork>()));
-builder.Services.AddSingleton<ILastServiceStatusRepository, LastServiceStatusRepository>(provider =>
-    new LastServiceStatusRepository(
-        client.GetDatabase(builder.Configuration.GetSection(ServiceHistoryDatabaseOptions.ConfigurationKey).GetSection("DatabaseName").Value),
-        provider.GetRequiredService<IUnitOfWork>()));
+builder.Services.AddTransient<ILogger, Logger>(_ => new LoggerConfiguration().WriteTo.Console().CreateLogger());
+
+builder.Services.AddTransient<IHistoryRepository, HistoryRepository>(provider =>
+    new HistoryRepository(provider.GetRequiredService<IUnitOfWork>().Session));
+
+builder.Services.AddTransient<ILastServiceStatusRepository, LastServiceStatusRepository>(provider =>
+    new LastServiceStatusRepository(provider.GetRequiredService<IUnitOfWork>().Session));
+
 builder.Services.AddSingleton<IServiceHistoryCollector, ServiceHistoryCollector>(provider => new ServiceHistoryCollector(
     provider.GetRequiredService<IUnitOfWork>(),
-    provider.GetRequiredService<ILastServiceStatusRepository>(),
-    provider.GetRequiredService<IHistoryRepository>()));
+    provider.GetRequiredService<IMongoDbInitializer>()));
+
 builder.Services.AddControllers();
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.ListenAnyIP(5000);
 });
-builder.Services.AddCors(options => {
-    options.AddPolicy(name: "MyPolicy",
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("MyPolicy",
         policy =>
         {
             policy.WithOrigins(
@@ -45,8 +47,7 @@ builder.Services.AddCors(options => {
                 .AllowAnyMethod();
         });
 });
-var app = builder.Build();
+Microsoft.AspNetCore.Builder.WebApplication app = builder.Build();
 app.MapControllers();
 app.UseCors("MyPolicy");
 app.Run();
-

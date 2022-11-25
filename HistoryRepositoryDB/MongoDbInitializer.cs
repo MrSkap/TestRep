@@ -1,6 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
 using Serilog;
+using ServiseEntities;
 
 namespace HistoryRepositoryDB;
 
@@ -9,9 +10,9 @@ public class MongoDbInitializer : IMongoDbInitializer
     private readonly IMongoClient _client;
     private readonly ILogger _logger;
 
-    public MongoDbInitializer(IMongoClient client, ILogger logger)
+    public MongoDbInitializer(ServiceHistoryDatabaseOptions options, ILogger logger)
     {
-        _client = client;
+        _client = new MongoClient(MongoClientSettings.FromUrl(new MongoUrl(options.ConnectionString)));
         _logger = logger;
     }
 

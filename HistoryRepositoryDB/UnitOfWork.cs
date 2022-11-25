@@ -1,47 +1,44 @@
 ﻿using MongoDB.Driver;
 using Serilog;
+using ServiseEntities;
 
 namespace HistoryRepositoryDB;
 
-public class UnitOfWork : IUnitOfWork
+public class UnitOfWork : IUnitOfWork, IDisposable
 {
+    public IClientSessionHandle Session { get; }
     private readonly ILogger _logger;
-    public IDisposable Session => _session;
-    private IClientSessionHandle _session { get; }
-    private readonly List<Task> _operations;
+    private readonly IHistoryRepository _historyRepository;
+    private readonly ILastServiceStatusRepository _lastServiceStatusRepository;
+    private readonly MongoClient _client;
 
-    public UnitOfWork(IMongoClient client, ILogger logger)
+    public UnitOfWork(
+        ServiceHistoryDatabaseOptions options,
+        ILogger logger,
+        IHistoryRepository historyRepository,
+        ILastServiceStatusRepository lastServiceStatusRepository)
     {
         _logger = logger;
-        _operations = new List<Task>();
-        _session = client.StartSession(new ClientSessionOptions());
+        _historyRepository = historyRepository;
+        _lastServiceStatusRepository = lastServiceStatusRepository;
+        _client = new MongoClient(MongoClientSettings.FromUrl(new MongoUrl(options.ConnectionString)));
+        Session = _client.StartSession();
     }
 
-    public void AddOperation(Task operation) => _operations.Add(operation);
+    public IHistoryRepository GetHistoryRepository() => _historyRepository;
 
-    public void CleanOperations() => _operations.Clear();
+    public ILastServiceStatusRepository GetLastServiceStatusRepository() => _lastServiceStatusRepository;
 
     public async Task SaveChanges()
     {
-        _logger.Information("Before starting transaction");
-        _session.StartTransaction();
-        try
-        {
-            foreach (Task operation in _operations)
-            {
-                operation.Start();
-            }
+        _logger.Information("Start commiting...");
+        await Session.CommitTransactionAsync();
+        _logger.Information("Finish commiting!");
+    }
 
-            _logger.Information("After operations");
-            await Task.WhenAll(_operations);
-        }
-        catch (Exception ex)
-        {
-            _logger.Error("Error with DB operations!!!" + ex.Message);
-        }
-
-        await _session.CommitTransactionAsync();
-        _logger.Information("After commit");
-        _operations.Clear();
+    public async void Dispose()
+    {
+        await SaveChanges();
+        Session.Dispose();
     }
 }
