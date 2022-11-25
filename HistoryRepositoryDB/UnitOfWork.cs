@@ -1,4 +1,5 @@
-﻿using MongoDB.Driver;
+﻿using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 using Serilog;
 using ServiseEntities;
 
@@ -13,16 +14,16 @@ public class UnitOfWork : IUnitOfWork, IDisposable
     private readonly MongoClient _client;
 
     public UnitOfWork(
-        ServiceHistoryDatabaseOptions options,
-        ILogger logger,
-        IHistoryRepository historyRepository,
-        ILastServiceStatusRepository lastServiceStatusRepository)
+        IOptions<ServiceHistoryDatabaseOptions> options,
+        ILogger logger)
     {
         _logger = logger;
-        _historyRepository = historyRepository;
-        _lastServiceStatusRepository = lastServiceStatusRepository;
-        _client = new MongoClient(MongoClientSettings.FromUrl(new MongoUrl(options.ConnectionString)));
+        MongoClientSettings settings = MongoClientSettings.FromUrl(new MongoUrl(options.Value.ConnectionString));
+        settings.DirectConnection = true;
+        _client = new MongoClient(settings);
         Session = _client.StartSession();
+        _historyRepository = new HistoryRepository(Session);
+        _lastServiceStatusRepository = new LastServiceStatusRepository(Session);
     }
 
     public IHistoryRepository GetHistoryRepository() => _historyRepository;

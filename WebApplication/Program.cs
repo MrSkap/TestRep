@@ -8,23 +8,12 @@ using ILogger = Serilog.ILogger;
 
 WebApplicationBuilder builder = Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(args);
 
-builder.Services.AddTransient<IUnitOfWork, UnitOfWork>(provider => new UnitOfWork(
-    provider.GetRequiredService<ServiceHistoryDatabaseOptions>(),
-    provider.GetRequiredService<ILogger>(),
-    provider.GetRequiredService<IHistoryRepository>(),
-    provider.GetRequiredService<ILastServiceStatusRepository>()));
-builder.Services.AddTransient<ServiceHistoryDatabaseOptions>(_ => new ServiceHistoryDatabaseOptions(){ ConnectionString = builder.Configuration.GetSection("ServiceHistoryDatabase").Value});
-builder.Services.AddTransient<IMongoDbInitializer, MongoDbInitializer>(provider => new MongoDbInitializer(
-    provider.GetRequiredService<ServiceHistoryDatabaseOptions>(),
-    provider.GetRequiredService<ILogger>()));
+builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
+builder.Services.Configure<ServiceHistoryDatabaseOptions>(
+    builder.Configuration.GetSection("ServiceHistoryDatabase"));
+builder.Services.AddTransient<IMongoDbInitializer, MongoDbInitializer>();
 
 builder.Services.AddTransient<ILogger, Logger>(_ => new LoggerConfiguration().WriteTo.Console().CreateLogger());
-
-builder.Services.AddTransient<IHistoryRepository, HistoryRepository>(provider =>
-    new HistoryRepository(provider.GetRequiredService<IUnitOfWork>().Session));
-
-builder.Services.AddTransient<ILastServiceStatusRepository, LastServiceStatusRepository>(provider =>
-    new LastServiceStatusRepository(provider.GetRequiredService<IUnitOfWork>().Session));
 
 builder.Services.AddSingleton<IServiceHistoryCollector, ServiceHistoryCollector>(provider => new ServiceHistoryCollector(
     provider.GetRequiredService<IUnitOfWork>(),

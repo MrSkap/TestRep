@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson;
+﻿using Microsoft.Extensions.Options;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using Serilog;
 using ServiseEntities;
@@ -10,9 +11,11 @@ public class MongoDbInitializer : IMongoDbInitializer
     private readonly IMongoClient _client;
     private readonly ILogger _logger;
 
-    public MongoDbInitializer(ServiceHistoryDatabaseOptions options, ILogger logger)
+    public MongoDbInitializer(IOptions<ServiceHistoryDatabaseOptions> options, ILogger logger)
     {
-        _client = new MongoClient(MongoClientSettings.FromUrl(new MongoUrl(options.ConnectionString)));
+        MongoClientSettings settings = MongoClientSettings.FromUrl(new MongoUrl(options.Value.ConnectionString));
+        //settings.DirectConnection = true;
+        _client = new MongoClient(settings);
         _logger = logger;
     }
 
