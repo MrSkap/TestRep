@@ -1,4 +1,5 @@
-﻿using MongoDB.Driver;
+﻿using MongoDB.Bson;
+using MongoDB.Driver;
 using ServiseEntities;
 
 namespace HistoryRepositoryDB;
@@ -24,10 +25,26 @@ public class LastServiceStatusRepository : ILastServiceStatusRepository
 
     public async Task SetServiceStatus(ServiceStatus serviceStatus)
     {
-        serviceStatus.Id = (await _collection.FindAsync(el=>el.Name == serviceStatus.Name)).First().Id;
-        async void Operation() => await _collection.ReplaceOneAsync
-            (el => el.Name == serviceStatus.Name, serviceStatus, new ReplaceOptions { IsUpsert = true });
-        _unitOfWork.AddOperation(new Task(Operation));
+        if ((await (await _collection.FindAsync(el => el.Id == serviceStatus.Id || el.Name == serviceStatus.Name)).ToListAsync()).Count == 0)
+        {
+            async void Operation() => await _collection.InsertOneAsync(serviceStatus);
+            _unitOfWork.AddOperation(new Task(Operation));
+        }
+        else
+        {
+            UpdateDefinition<ServiceStatus>? updateHealth = Builders<ServiceStatus>.Update.Set(s => s.Health, serviceStatus.Health);
+            UpdateDefinition<ServiceStatus>? updateTime = Builders<ServiceStatus>.Update.Set(s => s.TimeOfStatusUpdate, serviceStatus.TimeOfStatusUpdate);
+
+            async void Operation()
+            {
+                await _collection.UpdateOneAsync
+                    (el => el.Name == serviceStatus.Name, updateHealth);
+                await _collection.UpdateOneAsync
+                    (el => el.Name == serviceStatus.Name, updateTime);
+            }
+
+            _unitOfWork.AddOperation(new Task(Operation));
+        }
     }
 
     public async Task<List<ServiceStatus>> GetAllServicesStatus()

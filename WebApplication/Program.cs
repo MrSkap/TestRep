@@ -2,16 +2,21 @@ using HistoryRepositoryDB;
 using MongoDB.Driver;
 using Services;
 using ServiseEntities;
+using Serilog;
 
 var builder = Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(args);
-
-//var client = new MongoClient("mongodb://root:root@localhost:27018");
-MongoClientSettings settings = MongoClientSettings.FromUrl(new MongoUrl("mongodb://root:root@localhost:27018"));
+Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+MongoClientSettings settings = MongoClientSettings.FromUrl(new MongoUrl(
+    builder.Configuration.GetSection(ServiceHistoryDatabaseOptions.ConfigurationKey).GetSection("ConnectionString").Value));
 settings.DirectConnection = true;
 var client = new MongoClient(settings);
-var initializer = new MongoDbInitializer(client);
+
+Log.Logger.Information(client.Settings.ToString());
+
+var initializer = new MongoDbInitializer(client, Log.Logger);
 await initializer.Initialize();
-builder.Services.AddSingleton<IUnitOfWork, UnitOfWork>(_ => new UnitOfWork(client));
+Log.Logger.Information("Initialization is completed!");
+builder.Services.AddSingleton<IUnitOfWork, UnitOfWork>(_ => new UnitOfWork(client, Log.Logger));
 builder.Services.AddSingleton<IHistoryRepository, HistoryRepository>(provider =>
     new HistoryRepository(
         client.GetDatabase(builder.Configuration.GetSection(ServiceHistoryDatabaseOptions.ConfigurationKey).GetSection("DatabaseName").Value),
@@ -41,7 +46,6 @@ builder.Services.AddCors(options => {
         });
 });
 var app = builder.Build();
-
 app.MapControllers();
 app.UseCors("MyPolicy");
 app.Run();

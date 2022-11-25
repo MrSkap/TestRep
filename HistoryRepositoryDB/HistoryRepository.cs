@@ -1,7 +1,5 @@
-﻿using Microsoft.Extensions.Options;
-using MongoDB.Bson;
+﻿using MongoDB.Driver;
 using ServiseEntities;
-using MongoDB.Driver;
 
 namespace HistoryRepositoryDB;
 
@@ -16,18 +14,22 @@ public class HistoryRepository : IHistoryRepository
         _unitOfWork = unitOfWork;
     }
 
-    public async Task SetStatus(ServiceStatus service)
+    public Task SetStatus(ServiceStatus service)
     {
         async void Operation() => await _collection.InsertOneAsync(service);
         _unitOfWork.AddOperation(new Task(Operation));
+        return Task.CompletedTask;
     }
 
-    public async Task SetOrAddServiceStatuses(IEnumerable<ServiceStatus> serviceHistory)
+    public Task SetOrAddServiceStatuses(IEnumerable<ServiceStatus> serviceHistory)
     {
-        var options = new InsertManyOptions();
-        options.IsOrdered = true;
+        var options = new InsertManyOptions
+        {
+            IsOrdered = true,
+        };
         async void Operation() => await _collection.InsertManyAsync(serviceHistory, options);
         _unitOfWork.AddOperation(new Task(Operation));
+        return Task.CompletedTask;
     }
 
     public async Task<List<ServiceStatus>> GetServiceStatuses(string serviceName, int offset, int take) =>
